@@ -1,18 +1,233 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>CrewAI Output</title>
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <script src="/static/js/script.js"></script>
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f2f5;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1em 2em;
+            background: #003366;
+            color: white;
+        }
+        h1 {
+            margin: 0;
+        }
+        #add-task-btn {
+            background: #00a3dd;
+            color: white;
+            border: none;
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #task-input {
+            padding: 0.3em 0.7em;
+            font-size: 1em;
+            padding: 0.3em 0.7em;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #task-form {
+            display: flex;
+            gap: 0.5em;
+            margin-top: 0.5em;
+        }
+        #task-form button {
+            background: #00a3dd;
+            color: white;
+            border: none;
+            padding: 0.3em 0.7em;
+            border-radius: 4px;
+        }
+        #task-list {
+            list-style: none;
+            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 1em;
+        }
+        .task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5em;
+            margin-bottom: 0.25em;
+            background: #fafafa;
+            border-radius: 4px;
+        }
+        .task:hover {
+            background: #e0e0e0;
+        }
+        .task button {
+            background: #ddd;
+            border: 1px solid #ccc;
+            padding: 0.2em;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .task .checkbox {
+            margin-right: 0.5em;
+        }
+        .task .mark-done {
+            margin-right: 0.5em;
+        }
+        footer {
+            background: #003366;
+            color: white;
+            text-align: center;
+            padding: 1em 2em;
+            margin-top: 2em;
+        }
+        .empty-message {
+            font-size: 1em;
+            color: #aaa;
+        }
+    </style>
 </head>
-
 <body>
-    <h1>CrewAI Output</h1>
-    <div id="output" class="empty">Ingen output endnu...</div>
+    <header>
+        <h1>To-Do List</h1>
+        <button id="add-task-btn">Add Task</button>
+        <input type="text" id="task-input" placeholder="Enter a task...">
+    </header>
+    <main>
+        <form id="task-form">
+            <input type="text" id="task-text" placeholder="Enter a task..." />
+            <button type="submit">Add</button>
+        </form>
+        <ul id="task-list"></ul>
+    </main>
+    <footer class="empty-message" id="empty-message">No tasks yet.</footer>
 
-    <script src="/static/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const taskInput = document.getElementById('task-input');
+            const taskForm = document.getElementById('task-form');
+            const taskList = document.getElementById('task-list');
+            const emptyMessage = document.getElementById('empty-message');
+
+            // Handle form submission
+            taskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const text = taskInput.value.trim();
+                if (text === '') return;
+
+                const task = {
+                    id: Date.now().toString(),
+                    text,
+                    completed: false
+                };
+
+                addTaskToUI(task);
+                saveToLocalStorage(task);
+                taskInput.value = '';
+            });
+
+            // Add task to UI and localStorage
+            function addTaskToUI(task) {
+                const li = document.createElement('li');
+                li.className = 'task';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.classList.add('checkbox');
+                checkbox.addEventListener('change', () => {
+                    task.completed = checkbox.checked;
+                    updateTaskDisplay(task);
+                });
+
+                const markDoneBtn = document.createElement('button');
+                markDoneBtn.textContent = task.completed ? 'Unmark' : 'Mark';
+                markDoneBtn.classList.add('mark-done');
+                markDoneBtn.addEventListener('click', () => {
+                    task.completed = !task.completed;
+                    updateTaskDisplay(task);
+                });
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'Delete';
+                deleteBtn.classList.add('delete-btn');
+                deleteBtn.addEventListener('click', () => {
+                    deleteTaskFromUI(task);
+                    saveToLocalStorage(task);
+                });
+
+                li.appendChild(checkbox);
+                li.appendChild(document.createTextNode(task.text));
+                li.appendChild(markDoneBtn);
+                li.appendChild(deleteBtn);
+
+                taskList.appendChild(li);
+            }
+
+            // Save task to localStorage
+            function saveToLocalStorage(task) {
+                const tasks = getTasksFromLocalStorage();
+                tasks.push(task);
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+
+            // Get tasks from localStorage
+            function getTasksFromLocalStorage() {
+                try {
+                    const data = JSON.parse(localStorage.getItem('tasks')) || [];
+                    return data;
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            // Delete task from UI and localStorage
+            function deleteTaskFromUI(task) {
+                const li = document.querySelector(`li[id='${task.id}']`);
+                if (li) {
+                    li.remove();
+                }
+            }
+
+            // Update task display
+            function updateTaskDisplay(task) {
+                const checkbox = document.querySelector(`[id='${task.id}'] .checkbox`);
+                const markDoneBtn = document.querySelector(`[id='${task.id}'] .mark-done`);
+                const deleteBtn = document.querySelector(`[id='${task.id}'] .delete-btn`);
+
+                checkbox.checked = task.completed;
+                markDoneBtn.textContent = task.completed ? 'Unmark' : 'Mark';
+                deleteBtn.disabled = !task.completed;
+            }
+
+            // Handle search input
+            document.getElementById('task-input').addEventListener('input', function(e) {
+                const text = e.target.value.trim();
+                const tasks = getTasksFromLocalStorage();
+                const filteredTasks = tasks.filter(task => task.text.toLowerCase().includes(text.toLowerCase()));
+                renderTasks(filteredTasks);
+            });
+
+            // Render tasks
+            function renderTasks(tasks) {
+                taskList.innerHTML = '';
+                if (tasks.length === 0) {
+                    emptyMessage.textContent = 'No tasks found.';
+                } else {
+                    emptyMessage.textContent = '';
+                    tasks.forEach(task => addTaskToUI(task));
+                }
+            }
+        });
+    </script>
 </body>
-
 </html>

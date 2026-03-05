@@ -1,39 +1,49 @@
 from crewai import Crew, Process
-# henter agenterne og opgaverne du har defineret i de andre filer
-from agents import architect, coder, tester
-from tasks import design_task, code_task, test_task
-# importerer os-biblioteket så vi kan arbejde med filer og mapper.
+from agents import architect, tech_lead, coder, tester, docs_ai, devops_ai
+from tasks import (
+    design_task, planning_task, code_task, test_task,
+    documentation_task, deployment_task
+)
 import os
+import re
 
-# opretter output/ mappen hvis den ikke allerede findes. exist_ok=True betyder at den ikke crasher hvis mappen allerede eksisterer.
+# Create output folder
 os.makedirs("output", exist_ok=True)
+os.makedirs("templates", exist_ok=True)
 
-# samler det hele til ét crew
+# Create Crew
 crew = Crew(
-    # hvilke agenter der er med
-    agents=[architect, coder, tester],
-    # hvilke opgaver skal løses, i den rigtige rækkefølge 
-    tasks=[design_task, code_task, test_task],
-    # kør opgaverne én ad gangen i rækkefølge
+    agents=[architect, tech_lead, coder, tester, docs_ai, devops_ai],
+    tasks=[
+        design_task,
+        planning_task,
+        code_task,
+        test_task,
+        documentation_task,
+        deployment_task
+    ],
     process=Process.sequential,
-    # print hvad der sker i terminalen mens det kører
     verbose=True,
 )
 
-# print hvad der sker i terminalen mens det kører
+# Run the workflow
 result = crew.kickoff()
 
-# gem hver agents output separat
-# "w" betyder at den overskriver filen hvis den allerede findes
-# f.write(str(...)) skriver agentens output til filen som tekst
-with open("output/architect.md", "w") as f:
-    f.write(str(design_task.output.raw))
+# Save outputs
+agent_names = ["architect","tech_lead","coder","tester","docs_ai","devops_ai"]
+tasks_list = [
+    design_task, planning_task, code_task,
+    test_task, documentation_task, deployment_task
+]
 
-with open("output/coder.md", "w") as f:
-    f.write(str(code_task.output.raw))
+for agent_name, task in zip(agent_names, tasks_list):
+    with open(f"output/{agent_name}.md", "w") as f:
+        f.write(str(task.output.raw))
 
-with open("output/tester.md", "w") as f:
-    f.write(str(test_task.output.raw))
+# Extract coder's HTML to templates/index.html
+html_match = re.search(r"```html\n(.*?)```", str(code_task.output.raw), re.DOTALL)
+if html_match:
+    with open("templates/index.html", "w") as f:
+        f.write(html_match.group(1))
 
-# printer en besked i terminalen når alt er gemt
-print("Færdig! Åbn http://localhost:5000")
+print("All tasks completed! Open http://localhost:5000 to preview.")

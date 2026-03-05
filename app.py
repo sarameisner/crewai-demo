@@ -6,12 +6,14 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return send_from_directory("templates", "index.html")
+    if os.path.exists("templates/index.html"):
+        return send_from_directory("templates", "index.html")
+    return "To-Do app not generated yet!"
 
 @app.route("/output")
 def output():
     results = {}
-    agents = ["architect", "coder", "tester"]
+    agents = ["architect","tech_lead","coder","tester","docs_ai","devops_ai"]
     for agent in agents:
         path = f"output/{agent}.md"
         if os.path.exists(path):
@@ -28,7 +30,7 @@ def preview():
             match = re.search(r"```html\n(.*?)```", content, re.DOTALL)
             if match:
                 return match.group(1)
-    return "Ingen HTML output endnu"
+    return "No HTML output yet."
 
 if __name__ == "__main__":
     app.run(debug=True)
