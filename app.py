@@ -16,7 +16,7 @@ def output():
         path = f"output/{agent}.md"
         if os.path.exists(path):
             with open(path, "r") as f:
-                results[agent] = markdown.markdown(f.read(), extensions=["fenced_code"])
+                results[agent] = markdown.markdown(f.read(), extensions=["fenced_code", "tables"])
     return results
 
 @app.route("/preview")
