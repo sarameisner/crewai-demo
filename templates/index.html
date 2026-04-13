@@ -1,22 +1,286 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Todo List</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>To-Do List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    header {
+      background-color: #333;
+      color: white;
+      padding: 1em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    header input[type="text"] {
+      padding: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 200px;
+      font-size: 1em;
+    }
+
+    header button {
+      background-color: #222;
+      color: white;
+      border: none;
+      padding: 0.5em 1em;
+      cursor: pointer;
+    }
+
+    header button:hover {
+      background-color: #444;
+    }
+
+    #dark-mode {
+      background-color: #222;
+      color: white;
+      padding: 0.5em;
+      display: none;
+    }
+
+    #dark-mode button {
+      background-color: #444;
+    }
+
+    #task-form {
+      display: flex;
+      flex-direction: column;
+      margin: 1em 0;
+    }
+
+    #task-form input {
+      padding: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 0.5em;
+      font-size: 1em;
+    }
+
+    #task-form button {
+      background-color: #222;
+      color: white;
+      border: none;
+      padding: 0.5em;
+      font-size: 1em;
+    }
+
+    #task-form button:hover {
+      background-color: #444;
+    }
+
+    #task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+      padding: 1em;
+      background-color: #fff;
+      border-top: 1px solid #ccc;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      padding: 0.5em;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      cursor: pointer;
+    }
+
+    .task-item:hover {
+      background-color: #f1f1f1;
+    }
+
+    .task-item input[type="checkbox"] {
+      margin: 0;
+      align-self: flex-start;
+      width: 16px;
+      height: 16px;
+    }
+
+    .task-item span {
+      flex: 1;
+      word-wrap: break-word;
+      color: #333;
+      font-size: 0.9em;
+    }
+
+    .task-item button {
+      background-color: #e53935;
+      color: white;
+      border: none;
+      padding: 0.3em 0.5em;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    .task-item button:hover {
+      background-color: #d92626;
+    }
+
+    @media (max-width: 600px) {
+      #task-form input {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="app-title">My Todo List</div>
-    <form id="add-todo-form">
-        <input type="text" id="todo-input" placeholder="Enter a new todo...">
-        <button type="submit" id="add-todo-btn">Add Todo</button>
-    </form>
-    <ul id="todo-list"></ul>
-    <div class="empty-state" id="empty-state">
-        No todos yet
-    </div>
 
-    <script src="index.js"></script>
+  <header>
+    <h1>To-Do List</h1>
+    <div id="dark-mode">
+      <button>Dark Mode</button>
+    </div>
+    <input type="text" id="search-bar" placeholder="Search tasks...">
+    <button id="add-task">Add Task</button>
+  </header>
+
+  <div id="task-form">
+    <input type="text" id="task-input" placeholder="Enter a new task..." />
+    <button id="add-task-btn">Add</button>
+  </div>
+
+  <div id="task-list"></div>
+
+  <script>
+    const taskInput = document.getElementById('task-input');
+    const addTaskBtn = document.getElementById('add-task-btn');
+    const taskList = document.getElementById('task-list');
+    const searchBar = document.getElementById('search-bar');
+
+    // Load tasks from localStorage
+    function loadTasks() {
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      displayTasks(tasks);
+    }
+
+    // Display tasks
+    function displayTasks(tasks) {
+      taskList.innerHTML = '';
+      tasks.forEach((task, index) => {
+        const taskDiv = document.createElement('div');
+        taskDiv.className = 'task-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = task.completed;
+        checkbox.addEventListener('change', () => toggleComplete(task, index));
+
+        const text = document.createElement('span');
+        text.textContent = task.text;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', () => deleteTask(index));
+
+        taskDiv.appendChild(checkbox);
+        taskDiv.appendChild(text);
+        taskDiv.appendChild(deleteBtn);
+
+        taskList.appendChild(taskDiv);
+      });
+    }
+
+    // Save tasks to localStorage
+    function saveTasks() {
+      const tasks = Array.from(taskList.querySelectorAll('.task-item')).map(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        const text = item.querySelector('span');
+        const deleteBtn = item.querySelector('button');
+        return {
+          id: checkbox.checked ? 'completed' : 'pending',
+          text: text.textContent,
+          completed: checkbox.checked,
+          createdAt: new Date().toISOString()
+        };
+      });
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // Add task
+    addTaskBtn.addEventListener('click', () => {
+      const taskText = taskInput.value.trim();
+      if (taskText === '') {
+        alert("Please enter a task.");
+        return;
+      }
+
+      const task = {
+        id: Date.now(), // Unique ID
+        text: taskText,
+        completed: false,
+        createdAt: new Date().toISOString()
+      };
+
+      const taskDiv = document.createElement('div');
+      taskDiv.className = 'task-item';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = task.completed;
+      checkbox.addEventListener('change', () => toggleComplete(task, taskDiv));
+
+      const text = document.createElement('span');
+      text.textContent = task.text;
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.addEventListener('click', () => deleteTask(task));
+
+      taskDiv.appendChild(checkbox);
+      taskDiv.appendChild(text);
+      taskDiv.appendChild(deleteBtn);
+
+      taskList.appendChild(taskDiv);
+
+      taskInput.value = '';
+      saveTasks();
+    });
+
+    // Search tasks
+    searchBar.addEventListener('input', () => {
+      const filter = searchBar.value.trim().toLowerCase();
+      const tasks = Array.from(taskList.querySelectorAll('.task-item')).filter(task => 
+        task.querySelector('span').textContent.toLowerCase().includes(filter)
+      );
+      displayTasks(tasks);
+    });
+
+    // Toggle complete state
+    function toggleComplete(task, taskDiv) {
+      task.completed = taskDiv.querySelector('input[type="checkbox"]').checked;
+      saveTasks();
+    }
+
+    // Delete task
+    function deleteTask(task) {
+      const tasks = Array.from(taskList.querySelectorAll('.task-item'));
+      tasks.forEach((item, index) => {
+        if (item.querySelector('input[type="checkbox"]').value === task.id) {
+          item.remove();
+          saveTasks();
+        }
+      });
+    }
+
+    // Initialize
+    loadTasks();
+  </script>
+
 </body>
 </html>

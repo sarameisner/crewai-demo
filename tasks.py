@@ -32,29 +32,3 @@ code_task = Task(
     context=[design_task, planning_task],
 )
 
-# 4. QA / Testing task
-# test_task = Task(
-#     description="""Review the To-Do app code.
-#     Report bugs, missing features, accessibility issues, and improvements.""",
-#     expected_output="Written QA report with detailed findings.",
-#     agent=tester,
-#     context=[code_task],
-# )
-
-# # 5. Documentation task
-# documentation_task = Task(
-#     description="""Write developer and user documentation for the To-Do app:
-#     README, usage instructions, and notes on localStorage.""",
-#     expected_output="Developer and user documentation in markdown format.",
-#     agent=docs_ai,
-#     context=[code_task],
-# )
-
-# # 6. Deployment Validation task
-# deployment_task = Task(
-#     description="""Verify the To-Do app runs correctly in browser,
-#     todos persist in localStorage, and create a deployment checklist.""",
-#     expected_output="Deployment checklist and notes.",
-#     agent=devops_ai,
-#     context=[code_task],
-# )

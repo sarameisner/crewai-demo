@@ -12,17 +12,6 @@ try:
 except Exception:
     pass
 
-# Per-agent "work location" via model server IP.
-# Set `CREWAI_AGENT_BASE_URLS` to JSON mapping agent name -> base_url.
-# Example:
-#   export CREWAI_AGENT_BASE_URLS='{
-#     "architect":"http://192.168.1.10:11434/v1",
-#     "tech_lead":"http://192.168.1.11:11434/v1",
-#     "coder":"http://192.168.1.12:11434/v1",
-#     "tester":"http://192.168.1.13:11434/v1",
-#     "docs_ai":"http://192.168.1.14:11434/v1",
-#     "devops_ai":"http://192.168.1.15:11434/v1"
-#   }'
 
 DEFAULT_BASE_URL = os.getenv("CREWAI_DEFAULT_BASE_URL", "http://localhost:11434/v1")
 MODEL_NAME = os.getenv("CREWAI_MODEL_NAME", "qwen3:1.7b")
@@ -89,26 +78,3 @@ coder = Agent(
     llm=_make_llm("coder"),
 )
 
-# tester = Agent(
-#     role="QA Engineer",
-#     goal="Review the To-Do app code and report bugs, missing features, and improvements",
-#     backstory="You write thorough QA reports.",
-#     verbose=True,
-#     llm=_make_llm("tester"),
-# )
-
-# docs_ai = Agent(
-#     role="Documentation Specialist",
-#     goal="Write developer and user documentation for the To-Do app",
-#     backstory="You write clear, concise documentation.",
-#     verbose=True,
-#     llm=_make_llm("docs_ai"),
-# )
-
-# devops_ai = Agent(
-#     role="Deployment Validator",
-#     goal="Verify the To-Do app runs in browser, persists todos in localStorage, and produce a deployment checklist",
-#     backstory="You validate that software can be deployed reliably.",
-#     verbose=True,
-#     llm=_make_llm("devops_ai"),
-# )
