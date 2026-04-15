@@ -9,9 +9,9 @@ Current workflow roles:
 
 The workflow writes markdown artifacts to `output/` and extracts generated HTML into `templates/index.html` for preview.
 
-## 1) Prerequisites
+## 1) Preconditions
 
-- Python 3.10+
+- Python 3.10-3.12
 - `pip`
 - At least one local OpenAI-compatible endpoint (Ollama works)
 - Optional: multiple machines running Ollama for per-agent routing
